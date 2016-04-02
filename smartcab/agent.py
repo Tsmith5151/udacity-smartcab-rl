@@ -8,7 +8,7 @@ import operator
 class LearningAgent(Agent):
     """An agent that learns to drive in the smartcab world."""
 
-    def __init__(self, env, trial, epsilon, gamma):
+    def __init__(self, env, trial, gamma):
         super(LearningAgent, self).__init__(env)  # sets self.env = env, state = None, next_waypoint = None, and a default color
         self.color = 'yellow'  # override color
         self.planner = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
@@ -24,7 +24,7 @@ class LearningAgent(Agent):
         # Q-Learning Parameters:
         self.Q = {} #Q(state,action)
         self.default_Q = 1
-        self.epsilon = epsilon #exploration prob of making a random move
+        self.epsilon = 0 #exploration prob of making a random move
         self.gamma = gamma #discount rate
         self.t = 1.0 # learning rate 'alpha' declines over time
 
@@ -44,6 +44,7 @@ class LearningAgent(Agent):
         self.last_state = None
         self.last_action = None
         self.last_reward = None
+        self.epsilon = 0
         self.t = 1.0
 
     def update(self, t):
@@ -65,7 +66,8 @@ class LearningAgent(Agent):
         self.cumulative_reward += reward
 
         # TODO: Learn policy based on state, action, reward
-        learning_rate = get_learning_rate(self.t)
+        learning_rate = get_decline_rate(self.t)
+        self.epsilon = get_decline_rate(self.t)
         
         if self.last_state != None:
             if (self.last_state, self.last_action) not in self.Q:
@@ -85,7 +87,10 @@ class LearningAgent(Agent):
         self.cumulative_reward =+ reward 
         self.t += 1
 
-        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}, LR = {}".format(deadline, inputs, action, reward, self.cumulative_reward, round(learning_rate,2))  # [debug]
+        #[debug]
+        #print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}, LR = {}, E = {}".format(deadline, inputs, action, reward, self.cumulative_reward, round(learning_rate,2),round(self.epsilon,2))  
+
+        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}".format(deadline, inputs, action, reward, self.cumulative_reward)  
 
         """Statistics:"""
         self.num_moves += 1
@@ -144,20 +149,20 @@ class LearningAgent(Agent):
             best_action = self.Actions[i]
         return (maxQ, best_action)
 
-def get_learning_rate(t):
+def get_decline_rate(t):
         return 1.0 / float(t)
 
 def run():
     """Run the agent for a finite number of trials."""
 
-    trial = 20 #number of trials
+    trial = 100 #number of trials
     gamma = 0.90  #discount rate
-    epsilon = 0.30 #exploration prob
+    #epsilon = 0.30 #exploration prob
     #alpha = 1.0 #learning rate
 
     # Set up environment and agent
     e = Environment()  # create environment (also adds some dummy traffic)
-    a = e.create_agent(LearningAgent, trial,epsilon, gamma)  # create agent
+    a = e.create_agent(LearningAgent, trial, gamma)  # create agent
     e.set_primary_agent(a, enforce_deadline=True)  # set agent to track
     
     # Now simulate it
