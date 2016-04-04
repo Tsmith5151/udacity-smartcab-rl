@@ -22,13 +22,13 @@ class LearningAgent(Agent):
         self.last_reward = None
 
         """Q-Learning Parameters:"""
-        self.Q = {} #Q(state,action)
+        self.Q = {} # Q(state,action)
         self.epsilon = 0 #exploration prob of making a random move
         self.gamma = gamma #discount rate
-        self.t = 1.0 # learning rate 'alpha' declines over time
+        self.time_step = 1.0 # learning rate 'alpha' declines over time
 
         # Track number of times agent reaches destination
-        self.trials = trial
+        self.time_steprials = trial
         self.reach_dest = 0
         self.current_trial = 0
 
@@ -44,7 +44,7 @@ class LearningAgent(Agent):
         self.last_action = None
         self.last_reward = None
         self.epsilon = 0
-        self.t = 1.0
+        self.time_step = 1.0
 
     def update(self, t):
         # Gather inputs
@@ -54,7 +54,9 @@ class LearningAgent(Agent):
 
         # TODO: Update state
         self.state = (inputs['light'],inputs['oncoming'],inputs['left'], inputs['right'], self.next_waypoint)
-        #self.state = tuple(sorted(inputs.items())) # store in a tuple
+
+        alpha = get_decay_rate(self.time_step)
+        self.epsilon = get_decay_rate(self.time_step)
 
         # TODO: Select action according to your policy
         #action = random.choice(Environment.valid_actions) # random action 
@@ -65,20 +67,19 @@ class LearningAgent(Agent):
         self.cumulative_reward += reward
 
         # TODO: Learn policy based on state, action, reward
-        alpha = get_decay_rate(self.t)
-        self.epsilon = get_decay_rate(self.t)
         
         if self.last_state != None:
             if (self.last_state, self.last_action) not in self.Q:
-                self.Q[(self.last_state, self.last_action)] = 0.0
-        ## Updating Qvalues(State,action) 
+                self.Q[(self.last_state, self.last_action)] = 0.0 #Assign 0 if (state,action) pair not in Qvalue
+        
+        # Updating Qvalues(State,action) 
             self.Q[(self.last_state,self.last_action)] = \
             (1 - alpha) * self.Q[(self.last_state,self.last_action)] + \
             alpha * (self.last_reward + self.gamma *(self.Qmax(self.state)[0] - \
              self.Q[(self.last_state, self.last_action)]))
         
         # Store prevoious action -> use to update Qtable for next iteration time step
-        self.t += 1
+        self.time_step += 1
         self.last_state = self.state
         self.last_action = action
         self.last_reward = reward
@@ -126,7 +127,7 @@ class LearningAgent(Agent):
         return self.Q[(state, action)]
 
     def Qmax(self, state):
-        """Greedy Exploration"""
+        """Epsilon Greedy Exploration"""
         """Returns: max Q value and best action"""
         best_action = None
         if random.random() < self.epsilon:
@@ -136,7 +137,7 @@ class LearningAgent(Agent):
             maxQ = float('-inf')
             for action in self.Actions:
                 q = self.getQValue(state,action)
-                if q > maxQ:
+                if q > maxQ: #if (-inf) q-value
                     maxQ = q
                 else:
                     q = [self.getQValue(state, a) for a in self.Actions]
