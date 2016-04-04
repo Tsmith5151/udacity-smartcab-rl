@@ -128,19 +128,26 @@ class LearningAgent(Agent):
     def Qmax(self, state):
         """Greedy Exploration"""
         """Returns: max Q value and best action"""
+        best_action = None
         if random.random() < self.epsilon:
             best_action = random.choice(self.Actions) #Chooses Random Action
             maxQ = self.getQValue(state, best_action)
         else: #Choose action based on policy
-            q = [self.getQValue(state, a) for a in self.Actions]
-            maxQ = max(q)
-            count = q.count(maxQ)
-            if count > 1: #if more than 1 Qmax, choose randomly among the Qmaxs
-                best = [i for i in range(len(self.Actions)) if q[i] == maxQ]
-                i = random.choice(best)
-            else:
-                i = q.index(maxQ)
-            best_action = self.Actions[i]
+            maxQ = float('-inf')
+            for action in self.Actions:
+                q = self.getQValue(state,action)
+                if q > maxQ:
+                    maxQ = q
+                else:
+                    q = [self.getQValue(state, a) for a in self.Actions]
+                    maxQ = max(q)
+                    count = q.count(maxQ)
+                    if count > 1: #if more than 1 Qmax, choose randomly among the Qmaxs
+                        best = [i for i in range(len(self.Actions)) if q[i] == maxQ]
+                        i = random.choice(best)
+                    else:
+                        i = q.index(maxQ)
+                    best_action = self.Actions[i]
         return (maxQ, best_action)
 
 def get_decay_rate(t): #Decay rate for alpha and epsilon
@@ -149,7 +156,7 @@ def get_decay_rate(t): #Decay rate for alpha and epsilon
 def run():
     """Run the agent for a finite number of trials."""
 
-    trial = 200 #number of trials
+    trial = 100 #number of trials
     gamma = 0.90  #discount rate
     #epsilon = 0.30 #exploration prob
     #alpha = 5.0 #learning rate
