@@ -70,11 +70,11 @@ class LearningAgent(Agent):
         
         if self.last_state != None:
             if (self.last_state, self.last_action) not in self.Q:
-                self.Q[(self.last_state, self.last_action)] = 0.0 #Assign 0 if (state,action) pair not in Qvalue
+                self.Q[(self.last_state, self.last_action)] = 1.0 #Assign 1 if (state,action) pair not in Qvalue
         
         # Updating Qvalues(State,action) 
             self.Q[(self.last_state,self.last_action)] = \
-            (1 - alpha) * self.Q[(self.last_state,self.last_action)] + \
+            ((1 - alpha) * self.Q[(self.last_state,self.last_action)]) + \
             alpha * (self.last_reward + self.gamma *(self.Qmax(self.state)[0] - \
              self.Q[(self.last_state, self.last_action)]))
         
@@ -85,45 +85,33 @@ class LearningAgent(Agent):
         self.last_reward = reward
         self.cumulative_reward =+ reward 
 
-        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}".format(deadline, inputs, action, reward, self.cumulative_reward) #[debug]
-
-        """Statistics:"""
+       #Statistics
         self.num_moves += 1
         if reward < 0: #Assign penalty if reward is negative
             self.penalty+= 1
-
         add_total = False
         if deadline == 0:
             add_total = True
-
         if reward >= 10: #agent has reached destination 
             self.reach_dest += 1
             add_total = True
-
         if add_total:
             self.current_trial += 1
             print self.statistics()
-        
-        self.env.status_text += self.statistics() # Edit status_text on game screen
 
-    def statistics(self):
-        if self.current_trial == 0:
-            success_rate = 0
-        else:
-            success_rate = "{}/{} = %{}".format(self.reach_dest, self.current_trial, (round(float(self.reach_dest)/float(self.current_trial), 3))*100)
-        penalty_ratio = "{}/{} = %{}".format(self.penalty, self.num_moves, (round(float(self.penalty)/float(self.num_moves),4))*100)
-        text = "\nSuccess Rate: %s, Penalty Ratio %s \n" % (success_rate,penalty_ratio)
-        return text
+        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}".format(deadline, inputs, action, reward, self.cumulative_reward) #[debug]
+        # Edit status_text on game screen
+        self.env.status_text += self.statistics() 
+
 
     ##########################
     """QLearning Functions"""
     ##########################
 
     def getQValue(self, state, action):
-        """Returns Q(state,action)
-        return zero if not in self.Q"""
+        """Returns Q(state,action)"""
         if (state, action) not in self.Q:
-          self.Q[(state, action)] = 0.0
+          self.Q[(state, action)] = 1.0 #initialize q-values to 1.0
         return self.Q[(state, action)]
 
     def Qmax(self, state):
@@ -150,6 +138,15 @@ class LearningAgent(Agent):
                         i = q.index(maxQ)
                     best_action = self.Actions[i]
         return (maxQ, best_action)
+
+    def statistics(self):
+        if self.current_trial == 0:
+            success_rate = 0
+        else:
+            success_rate = "{}/{} = %{}".format(self.reach_dest, self.current_trial, (round(float(self.reach_dest)/float(self.current_trial), 3))*100)
+        penalty_ratio = "{}/{} = %{}".format(self.penalty, self.num_moves, (round(float(self.penalty)/float(self.num_moves),4))*100)
+        text = "\nSuccess Rate: %s, Penalty Ratio %s \n" % (success_rate,penalty_ratio)
+        return text
 
 def get_decay_rate(t): #Decay rate for alpha and epsilon
         return 1.0 / float(t)
