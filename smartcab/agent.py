@@ -21,9 +21,8 @@ class LearningAgent(Agent):
         self.cumulative_reward = 0 # Sum the total rewards per trial
         self.last_reward = None
 
-        # Q-Learning Parameters:
+        """Q-Learning Parameters:"""
         self.Q = {} #Q(state,action)
-        self.default_Q = 1
         self.epsilon = 0 #exploration prob of making a random move
         self.gamma = gamma #discount rate
         self.t = 1.0 # learning rate 'alpha' declines over time
@@ -66,35 +65,30 @@ class LearningAgent(Agent):
         self.cumulative_reward += reward
 
         # TODO: Learn policy based on state, action, reward
-        learning_rate = get_decline_rate(self.t)
-        self.epsilon = get_decline_rate(self.t)
+        alpha = get_decay_rate(self.t)
+        self.epsilon = get_decay_rate(self.t)
         
         if self.last_state != None:
             if (self.last_state, self.last_action) not in self.Q:
-                self.Q[(self.last_state, self.last_action)] = 1.0
-
+                self.Q[(self.last_state, self.last_action)] = 0.0
         ## Updating Qvalues(State,action) 
             self.Q[(self.last_state,self.last_action)] = \
-            (1 - learning_rate) * self.Q[(self.last_state,self.last_action)] + \
-            learning_rate * (self.last_reward + \
-                self.gamma *(self.Qmax(self.state)[0] - self.Q[(self.last_state, self.last_action)]))
-
+            (1 - alpha) * self.Q[(self.last_state,self.last_action)] + \
+            alpha * (self.last_reward + self.gamma *(self.Qmax(self.state)[0] - \
+             self.Q[(self.last_state, self.last_action)]))
         
         # Store prevoious action -> use to update Qtable for next iteration time step
+        self.t += 1
         self.last_state = self.state
         self.last_action = action
         self.last_reward = reward
         self.cumulative_reward =+ reward 
-        self.t += 1
 
-        #[debug]
-        #print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}, LR = {}, E = {}".format(deadline, inputs, action, reward, self.cumulative_reward, round(learning_rate,2),round(self.epsilon,2))  
-
-        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}".format(deadline, inputs, action, reward, self.cumulative_reward)  
+        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}".format(deadline, inputs, action, reward, self.cumulative_reward) #[debug]
 
         """Statistics:"""
         self.num_moves += 1
-        if reward < 0:
+        if reward < 0: #Assign penalty if reward is negative
             self.penalty+= 1
 
         add_total = False
@@ -109,7 +103,7 @@ class LearningAgent(Agent):
             self.current_trial += 1
             print self.statistics()
         
-        self.env.status_text += self.statistics() # Edit status_text
+        self.env.status_text += self.statistics() # Edit status_text on game screen
 
     def statistics(self):
         if self.current_trial == 0:
@@ -137,11 +131,11 @@ class LearningAgent(Agent):
         if random.random() < self.epsilon:
             best_action = random.choice(self.Actions) #Chooses Random Action
             maxQ = self.getQValue(state, best_action)
-        else: #Choose action based on Q Value
+        else: #Choose action based on policy
             q = [self.getQValue(state, a) for a in self.Actions]
             maxQ = max(q)
             count = q.count(maxQ)
-            if count > 1: #Randomly choose between Qmax if more than one
+            if count > 1: #if more than 1 Qmax, choose randomly among the Qmaxs
                 best = [i for i in range(len(self.Actions)) if q[i] == maxQ]
                 i = random.choice(best)
             else:
@@ -149,16 +143,16 @@ class LearningAgent(Agent):
             best_action = self.Actions[i]
         return (maxQ, best_action)
 
-def get_decline_rate(t):
+def get_decay_rate(t): #Decay rate for alpha and epsilon
         return 1.0 / float(t)
 
 def run():
     """Run the agent for a finite number of trials."""
 
-    trial = 100 #number of trials
+    trial = 200 #number of trials
     gamma = 0.90  #discount rate
     #epsilon = 0.30 #exploration prob
-    #alpha = 1.0 #learning rate
+    #alpha = 5.0 #learning rate
 
     # Set up environment and agent
     e = Environment()  # create environment (also adds some dummy traffic)
@@ -172,5 +166,3 @@ def run():
 
 if __name__ == '__main__':
     run()
-
-
