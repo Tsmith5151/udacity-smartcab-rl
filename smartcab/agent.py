@@ -65,6 +65,7 @@ class LearningAgent(Agent):
         # Execute action and get reward
         reward = self.env.act(self, action)
         self.cumulative_reward += reward
+        self.time_step += 1
 
         # TODO: Learn policy based on state, action, reward
         
@@ -73,17 +74,14 @@ class LearningAgent(Agent):
                 self.Q[(self.last_state, self.last_action)] = 1.0 #Assign 1 if (state,action) pair not in Qvalue
         
         # Updating Qvalues(State,action) 
-            self.Q[(self.last_state,self.last_action)] = \
-            ((1 - alpha) * self.Q[(self.last_state,self.last_action)]) + \
-            alpha * (self.last_reward + self.gamma *(self.Qmax(self.state)[0] - \
-             self.Q[(self.last_state, self.last_action)]))
+            self.Q[(self.last_state,self.last_action)] = ((1 - alpha) * self.Q[(self.last_state,self.last_action)]) + alpha * (self.last_reward \
+            + self.gamma *(self.Qmax(self.state)[0] - self.Q[(self.last_state, self.last_action)]))
         
         # Store prevoious action -> use to update Qtable for next iteration time step
-        self.time_step += 1
+
         self.last_state = self.state
         self.last_action = action
         self.last_reward = reward
-        self.cumulative_reward =+ reward 
 
        #Statistics
         self.num_moves += 1
@@ -102,7 +100,6 @@ class LearningAgent(Agent):
         print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}".format(deadline, inputs, action, reward, self.cumulative_reward) #[debug]
         # Edit status_text on game screen
         self.env.status_text += self.statistics() 
-
 
     ##########################
     """QLearning Functions"""
