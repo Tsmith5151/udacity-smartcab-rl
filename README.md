@@ -1,11 +1,10 @@
 # Train a Smartcab How to Drive
 
+## **Reinforcement Learning Project**
+
 <p align = "center">
-<img src = "http://newsthump.com/wp-content/uploads/2014/05/google-driverless-car.jpg">
+<img src = "http://itechfuture.com/wp-content/uploads/2014/05/Future-technology-Concept-of-the-car-with-the-autopilot-Google.jpg">
 </p>
-
-
-Reinforcement Learning Project
 
 ## Install
 
