@@ -1,7 +1,7 @@
 # Train a Smartcab How to Drive
 
 <p align = "center">
-<img src = "http://ci.santa-rosa.ca.us/SiteCollectionImages/yellow%20cab.jpg">
+<img src = "http://newsthump.com/wp-content/uploads/2014/05/google-driverless-car.jpg">
 </p>
 
 
