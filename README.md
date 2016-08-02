@@ -1,5 +1,10 @@
 # Train a Smartcab How to Drive
 
+<p align = "center">
+<img src = "http://ci.santa-rosa.ca.us/SiteCollectionImages/yellow%20cab.jpg">
+</p>
+
+
 Reinforcement Learning Project
 
 ## Install
