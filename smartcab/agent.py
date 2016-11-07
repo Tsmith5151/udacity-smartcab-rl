@@ -1,9 +1,16 @@
 import pdb
 import random
+import os
 from environment import Agent, Environment, TrafficLight
 from planner import RoutePlanner
 from simulator import Simulator
 import operator
+
+cur_dir = os.path.dirname(__file__)
+path = os.path.abspath(cur_dir)
+fullpath = os.path.join(path, "sim-results/q_learn.txt")
+os.remove("sim-results/q_learn.txt")
+filename = open(fullpath, 'a')
 
 class LearningAgent(Agent):
     """An agent that learns to drive in the smartcab world."""
@@ -23,8 +30,7 @@ class LearningAgent(Agent):
 
         """Q-Learning Parameters:"""
         self.Q = {} # Q(state,action)
-        self.epsilon = 9.0 #exploration prob of making a random move
-        self.alpha = 9.0 #exploration prob of making a random move
+        self.epsilon = 0 #exploration prob of making a random move
         self.gamma = gamma #discount rate
         self.time_step = 1.0 # learning rate 'alpha' declines over time
 
@@ -44,8 +50,7 @@ class LearningAgent(Agent):
         self.last_state = None
         self.last_action = None
         self.last_reward = None
-        self.epsilon = 1.0
-        self.alpha = 9.0
+        self.epsilon = 0
         self.time_step = 1.0
 
     def update(self, t):
@@ -62,7 +67,7 @@ class LearningAgent(Agent):
         self.state['next_waypoint'] = self.next_waypoint
         self.state = tuple(sorted(self.state.items()))
 
-        #self.alpha = get_decay_rate(self.time_step)
+        alpha = get_decay_rate(self.time_step)
         self.epsilon = get_decay_rate(self.time_step)
 
         # TODO: Select action according to your policy
@@ -81,7 +86,7 @@ class LearningAgent(Agent):
                 self.Q[(self.last_state, self.last_action)] = 1.0 #Assign 1 if (state,action) pair not in Qvalue
         
         # Updating Qvalues(State,action) 
-            self.Q[(self.last_state,self.last_action)] = ((1 - self.alpha) * self.Q[(self.last_state,self.last_action)]) + self.alpha * (self.last_reward \
+            self.Q[(self.last_state,self.last_action)] = ((1 - alpha) * self.Q[(self.last_state,self.last_action)]) + alpha * (self.last_reward \
             + self.gamma *(self.Qmax(self.state)[0]))
         
         # Store prevoious action -> use to update Qtable for next iteration time step
@@ -104,7 +109,8 @@ class LearningAgent(Agent):
             self.current_trial += 1
             print self.statistics()
 
-        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, Cum. Reward = {}".format(deadline, inputs, action, reward, self.cumulative_reward) #[debug]
+        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}, E = {}".format(deadline, inputs, action, reward, self.epsilon) #[debug]
+            
         # Edit status_text on game screen
         self.env.status_text += self.statistics() 
 
@@ -123,8 +129,6 @@ class LearningAgent(Agent):
         """Returns: max Q value and best action"""
         best_action = None
         if random.random() < self.epsilon:
-            print "Epsilon: %s" % self.epsilon
-            print "Alpha: %s" % self.alpha 
             best_action = random.choice(self.Actions) #Chooses Random Action
             maxQ = self.getQValue(state, best_action)
         else: #Choose action based on policy
@@ -152,6 +156,14 @@ class LearningAgent(Agent):
             success_rate = "{}/{} = %{}".format(self.reach_dest, self.current_trial, (round(float(self.reach_dest)/float(self.current_trial), 3))*100)
         penalty_ratio = "{}/{} = %{}".format(self.penalty, self.num_moves, (round(float(self.penalty)/float(self.num_moves),4))*100)
         text = "\nSuccess Rate: %s, Penalty Ratio %s \n" % (success_rate,penalty_ratio)
+
+        suc = str(success_rate)
+        pen = str(penalty_ratio)
+        tri = str(self.current_trial)
+
+        with open("sim-results/q_learn.txt","a") as myfile:
+            myfile.write("Trial: "+ tri + " " + " Success Rate: "+ suc + " " + "Penalty Rate: "+ pen + "\n")
+
         return text
 
 def get_decay_rate(t): #Decay rate for alpha and epsilon
@@ -160,9 +172,10 @@ def get_decay_rate(t): #Decay rate for alpha and epsilon
 def run():
     """Run the agent for a finite number of trials."""
 
-    trial = 100 #number of trials
+    trial = 1 #number of trials
     gamma = 0.10  #discount rate
-
+    #epsilon = 0.30 #exploration prob
+    #alpha = .50 #learning rate
 
     # Set up environment and agent
     e = Environment()  # create environment (also adds some dummy traffic)
@@ -170,7 +183,7 @@ def run():
     e.set_primary_agent(a, enforce_deadline=True)  # set agent to track
     
     # Now simulate it
-    sim = Simulator(e, update_delay=0.001)  # reduce update_delay to speed up simulation
+    sim = Simulator(e, update_delay=0.00001,display=False)  # reduce update_delay to speed up simulation
     sim.run(n_trials=100)  # press Esc or close pygame window to quit
 
 
