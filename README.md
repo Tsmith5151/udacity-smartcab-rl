@@ -1,6 +1,4 @@
-# Train a Smartcab How to Drive
-
-## **Reinforcement Learning Project**
+# Training a Smartcab How to Drive using Reinforcement Learning Techniques**
 
 <p align = "center">
 <img src = "http://itechfuture.com/wp-content/uploads/2014/05/Future-technology-Concept-of-the-car-with-the-autopilot-Google.jpg">
